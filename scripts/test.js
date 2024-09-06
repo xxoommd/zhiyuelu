@@ -3,6 +3,9 @@
 const fs = require('fs');
 const path = require('path');
 
+const ROOT_PATH = path.join(__dirname, '..')
+const SUMMARY_PATH = path.join(ROOT_PATH, 'SUMMARY.md')
+
 const utils = {
   checkAndCreateFile: file => {
     if (fs.existsSync(file)) {
@@ -62,46 +65,58 @@ const utils = {
 }
 
 /* ============================ CONTENT ============================ */
+/*
+本书结构：
+  - Scroll [X]
+    - Chapter [X]（仅5、6、9卷分章节）
 
-const ROOT_PATH = path.join(__dirname, '..')
-const SUMMARY_PATH = path.join(ROOT_PATH, 'SUMMARY.md')
+        - Article [X]
+*/
+const SCROLL_COUNT = 32
 
-const CHAPTERS = [
-  '卷一·七佛',
-  '卷二·应化圣贤',
-  '卷三·西天祖师',
-  '卷四·东土祖师',
-  '卷五·﹝无﹞',
-  '卷六·﹝无﹞',
-  '卷七·未详法嗣',
-  '卷八·六祖下第三世上',
-  '卷九·六祖下第三世下',
-  '卷十·六祖下第四世',
-  '卷十一·六祖下第四世',
-  '卷十二·六祖下第四世',
-  '卷十三·六祖下第五世',
-  '卷十四·六祖下第五世',
-  '卷十五·六祖下第五世',
-  '卷十六·六祖下第六世',
-  '卷十七·六祖下第六世',
-  '卷十八·六祖下第六世',
-  '卷十九·六祖下第七世',
-  '卷二十·六祖下第七世',
-  '卷二十一·六祖下第八世',
-  '卷二十二·六祖下第九世',
-  '卷二十三·六祖下第十世',
-  '卷二十四·六祖下第十一世',
-  '卷二十五·六祖下第十二世',
-  '卷二十六·六祖下第十三世上',
-  '卷二十七·六祖下第十三世下',
-  '卷二十八·六祖下第十四世',
-  '卷二十九·六祖下第十五世',
-  '卷三十·六祖下第十六世',
-  '卷三十一·六祖下第十六世',
-  '卷三十二·六祖下第十六世'
-]
+const SCROLL_NAMES = {
+  1: '七佛',
+  2: '应化圣贤',
+  3: '西天祖师',
+  4: '东土祖师',
+  5: '﹝无﹞',
+  6: '﹝无﹞',
+  7: '未详法嗣',
+  8: '六祖下第三世上',
+  9: '六祖下第三世下',
+  10: '六祖下第四世',
+  11: '六祖下第四世',
+  12: '六祖下第四世',
+  13: '六祖下第五世',
+  14: '六祖下第五世',
+  15: '六祖下第五世',
+  16: '六祖下第六世',
+  17: '六祖下第六世',
+  18: '六祖下第六世',
+  19: '六祖下第七世',
+  20: '六祖下第七世',
+  21: '六祖下第八世',
+  22: '六祖下第九世',
+  23: '六祖下第十世',
+  24: '六祖下第十一世',
+  25: '六祖下第十二世',
+  26: '六祖下第十三世上',
+  27: '六祖下第十三世下',
+  28: '六祖下第十四世',
+  29: '六祖下第十五世',
+  30: '六祖下第十六世',
+  31: '六祖下第十六世',
+  32: '六祖下第十六世'
+}
 
-const SKIP_ID = {
+const CHAPTERS = {
+  5: ['六祖下第一世', '六祖下第二世'],
+  6: ['二祖旁出法嗣', '四祖旁出法嗣', '五祖旁出法嗣', '六祖旁出法嗣'],
+  9: ['六祖下第三世下', '南岳青原宗派未定法嗣']
+}
+
+// 不需要编号的文章
+const SKIP_NUMBER_ARTICLE_ID = {
   1: [8],
   10: [1],
   14: [1],
@@ -110,13 +125,7 @@ const SKIP_ID = {
   32: [1]
 }
 
-const SUB_CHAPTERS = {
-  5: ['六祖下第一世', '六祖下第二世'],
-  6: ['二祖旁出法嗣', '四祖旁出法嗣', '五祖旁出法嗣', '六祖旁出法嗣'],
-  9: ['六祖下第三世下', '南岳青原宗派未定法嗣']
-}
-
-const SUBTITLES = {
+const ARTICLE_TITLES = {
   1: ['毗婆尸佛', '尸弃佛', '毗舍浮佛', '拘留孙佛', '拘那含牟尼佛', '迦叶佛', '释迦牟尼佛', '附、诸师拈颂诸经语句'],
   2: ["文殊菩萨", "天亲菩萨", "维摩会上", "善财", "须菩提尊者", "无厌足王", "舍利弗尊者", "鸯崛魔罗尊者", "宾头卢尊者", "障蔽魔王", "那吒太子", "广额屠儿", "秦跋陀禅师", "金陵宝志禅师", "双林善慧大士", "南岳慧思禅师", "天台山修禅寺智者禅师", "泗州僧伽大师", "天台丰干禅师", "寒山子", "拾得者", "明州奉化县布袋和尚", "法华志言大士", "扣冰澡先古佛", "千岁宝掌和尚", "懒残", "法顺大师", "清凉澄观国师"],
   3: ['一祖摩诃迦叶尊者', '二祖阿难尊者', '三祖商那和修尊者', '四祖优波鞠多尊者', '五祖提多迦尊者', '六祖弥遮迦尊者', '七祖婆须蜜尊者', '八祖佛陀难提尊者', '九祖伏驮蜜多尊者', '十祖胁尊者', '十一祖富那夜奢尊者', '十二祖马鸣大士者', '十三祖迦毗摩罗尊者', '十四祖龙树尊者', '十五祖迦那提婆尊者', '十六祖罗睺罗多尊者', '十七祖僧伽难提尊者', '十八祖伽耶舍多尊者', '十九祖鸠摩罗多尊者', '二十祖闭夜多尊者', '二十一祖婆修盘头尊者', '二十二祖摩孥罗尊者', '二十三祖鹤勒那尊者', '二十四祖师子比丘尊者', '二十五祖婆舍斯多尊者', '二十六祖不如蜜多尊者', '二十七祖般若多罗尊者'],
@@ -152,8 +161,6 @@ const SUBTITLES = {
 }
 
 
-
-
 let summary_temp = `‌# Summary​
 
 * [序](/序)
@@ -162,22 +169,21 @@ let summary_temp = `‌# Summary​
 
 `
 
-
-function generate(chapterID, chapterName, subtitles) {
+function generate(scrollID, scrollName, titles) {
   // 1.检查文件夹是否存在
-  const dir = path.join(ROOT_PATH, chapterName)
+  const dir = path.join(ROOT_PATH, scrollName)
   utils.checkAndCreateDir(dir)
 
-  summary_temp += `* [${chapterName}](${chapterName})\n`
+  summary_temp += `* [${scrollName}](${scrollName})\n`
 
   // 区别是否有子章节
-  let subChapters = SUB_CHAPTERS[chapterID]
+  let subChapters = SUB_CHAPTERS[scrollID]
   if (!!subChapters) {
     let subCount = subChapters.length
-    let subtitleCount = subtitles.length;
+    let subtitleCount = titles.length;
 
     if (subCount != subtitleCount) {
-      console.log(`章节 ${chapterName} 的子章节数量 ${subCount} 与实际数量 ${subtitleCount} 不一致`)
+      console.log(`章节 ${scrollName} 的子章节数量 ${subCount} 与实际数量 ${subtitleCount} 不一致`)
       return
     }
 
@@ -187,16 +193,16 @@ function generate(chapterID, chapterName, subtitles) {
       // mkdir
       let sub = path.join(dir, subname)
       utils.checkAndCreateDir(sub)
-      summary_temp += `  * [${subname}](${chapterName}\\${subname})\n`
+      summary_temp += `  * [${subname}](${scrollName}\\${subname})\n`
 
       // make md
-      let subs = subtitles[j];
+      let subs = titles[j];
       for (let k = 0; k < subs.length; k++) {
         let id = k + 1;
         let name = subs[k];
         let title = `${id}、${name}`
         let filename = `${title}.md`
-        let filepath = `${chapterName}/${subname}/${filename}`
+        let filepath = `${scrollName}/${subname}/${filename}`
         let fullpath = path.join(ROOT_PATH, filepath)
 
         summary_temp += `    * [${title}](${filepath})\n`
@@ -205,16 +211,16 @@ function generate(chapterID, chapterName, subtitles) {
       }
     }
   } else {
-    for (let i = 0; i < subtitles.length; i++) {
+    for (let i = 0; i < titles.length; i++) {
       let id = i + 1;
-      let name = subtitles[i];
+      let name = titles[i];
       let title = `${id}、${name}`
-      if (SKIP_ID[chapterID] && SKIP_ID[chapterID].includes(id)) {
+      if (SKIP_NUMBER_ARTICLE_ID[scrollID] && SKIP_NUMBER_ARTICLE_ID[scrollID].includes(id)) {
         title = name;
       }
 
       let filename = `${title}.md`
-      let filepath = `${chapterName}/${filename}`
+      let filepath = `${scrollName}/${filename}`
       let fullpath = path.join(ROOT_PATH, filepath)
 
       summary_temp += `  * [${title}](${filepath})\n`
@@ -230,10 +236,10 @@ function generate(chapterID, chapterName, subtitles) {
 
 
 for (let i = 0; i < CHAPTERS.length; i++) {
-  let chapterID = i + 1;
-  let chapterName = CHAPTERS[i];
-  let subtitles = SUBTITLES[chapterID] || [];
-  generate(chapterID, chapterName, subtitles)
+  let scrollID = i + 1;
+  let scrollName = CHAPTERS[i];
+  let titles = SUBTITLES[scrollID] || [];
+  generate(scrollID, scrollName, titles)
 }
 
 fs.writeFileSync(SUMMARY_PATH, summary_temp)
