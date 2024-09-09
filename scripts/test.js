@@ -309,7 +309,7 @@ function genReadmeSchedule() {
       }
     }()
     const updated = currSchedule.updated || '-'
-    scheduleSection += `|卷${scrollName}|${currSchedule}/${articleCount}|${status}|${updated}|\n`
+    scheduleSection += `|卷${scrollName}|${currSchedule.finished}/${articleCount}|${status}|${updated}|\n`
   }
 
   scheduleSection += '\n'
