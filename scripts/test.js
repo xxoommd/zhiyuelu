@@ -8,7 +8,7 @@ const SUMMARY_PATH = path.join(ROOT_PATH, 'SUMMARY.md')
 
 const currWorkSchedule = 1
 const schedule = {
-  1: 1,
+  1: { finished: 1, updated: '2024-9-9' },
   2: 0
 }
 
@@ -275,8 +275,8 @@ function genReadmeSchedule() {
 
 
   // 表头
-  scheduleSection += `|卷|Progress|Status|\n`
-  scheduleSection += `|---|---|---|\n`
+  scheduleSection += `|卷|Progress|Status|Updated\n`
+  scheduleSection += `|---|---|---|---|\n`
 
 
   for (let [i, v] of Object.entries(SCROLL_NAMES)) {
@@ -298,17 +298,18 @@ function genReadmeSchedule() {
       return count
     }()
 
-    let currSchedule = schedule[i] || 0
+    let currSchedule = schedule[i] || { finished: 0 }
     const status = function () {
-      if (currSchedule === articleCount) {
+      if (currSchedule.finished === articleCount) {
         return '✅'
-      } else if (currSchedule > 0) {
+      } else if (currSchedule.finished > 0) {
         return '🟢'
       } else {
         return '✖️'
       }
     }()
-    scheduleSection += `|卷${scrollName}|${currSchedule}/${articleCount}|${status}|\n`
+    const updated = currSchedule.updated || '-'
+    scheduleSection += `|卷${scrollName}|${currSchedule}/${articleCount}|${status}|${updated}|\n`
   }
 
   scheduleSection += '\n'
