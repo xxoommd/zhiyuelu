@@ -13,14 +13,20 @@ const utils = {
       return true
     }
     console.log(`- 文件：${file} 不存在，创建...`)
-    fs.writeFileSync(file, '')
+    fs.writeFileSync(file, '', err => {
+      console.error(`[Err] Create file: ${file} fail:`, err)
+      process.exit(1)
+    })
     return false
   },
 
   checkAndCreateDir: dir => {
     if (!fs.existsSync(dir)) {
       console.log(`+ 目录：${dir} 不存在，创建...`)
-      fs.mkdirSync(dir)
+      fs.mkdirSync(dir, { recursive: true }, err => {
+        console.error(`[Err] Create dir: ${dir} fail:`, err)
+        process.exit(1)
+      })
       return false
     }
 
@@ -61,6 +67,28 @@ const utils = {
     result = result.replace(/零+$/, '');
 
     return result;
+  },
+
+  // level: 0 1 2
+  genSummary: (title, link, level) => {
+    switch (level) {
+      case 0:
+        return `* [${title}](${link})\n`
+      case 1:
+        return `  * [${title}](${link})\n`
+      case 2:
+        return `    * [${title}](${link})\n`
+      default:
+        return ''
+    }
+  },
+
+  genNumberedArticle: (num, article) => {
+    return `${String(num).padStart(3, '0')}_${article}`
+  },
+
+  numToStr: (num, pad) => {
+    return String(num).padStart(pad, '0')
   }
 }
 
@@ -69,12 +97,12 @@ const utils = {
 本书结构：
   - Scroll [X]
     - Chapter [X]（仅5、6、9卷分章节）
-
         - Article [X]
 */
 const SCROLL_COUNT = 32
 
 const SCROLL_NAMES = {
+  0: '序',
   1: '七佛',
   2: '应化圣贤',
   3: '西天祖师',
@@ -126,6 +154,7 @@ const SKIP_NUMBER_ARTICLE_ID = {
 }
 
 const ARTICLE_TITLES = {
+  0: ['出版社简介', '水月斋指月录原序'],
   1: ['毗婆尸佛', '尸弃佛', '毗舍浮佛', '拘留孙佛', '拘那含牟尼佛', '迦叶佛', '释迦牟尼佛', '附、诸师拈颂诸经语句'],
   2: ["文殊菩萨", "天亲菩萨", "维摩会上", "善财", "须菩提尊者", "无厌足王", "舍利弗尊者", "鸯崛魔罗尊者", "宾头卢尊者", "障蔽魔王", "那吒太子", "广额屠儿", "秦跋陀禅师", "金陵宝志禅师", "双林善慧大士", "南岳慧思禅师", "天台山修禅寺智者禅师", "泗州僧伽大师", "天台丰干禅师", "寒山子", "拾得者", "明州奉化县布袋和尚", "法华志言大士", "扣冰澡先古佛", "千岁宝掌和尚", "懒残", "法顺大师", "清凉澄观国师"],
   3: ['一祖摩诃迦叶尊者', '二祖阿难尊者', '三祖商那和修尊者', '四祖优波鞠多尊者', '五祖提多迦尊者', '六祖弥遮迦尊者', '七祖婆须蜜尊者', '八祖佛陀难提尊者', '九祖伏驮蜜多尊者', '十祖胁尊者', '十一祖富那夜奢尊者', '十二祖马鸣大士者', '十三祖迦毗摩罗尊者', '十四祖龙树尊者', '十五祖迦那提婆尊者', '十六祖罗睺罗多尊者', '十七祖僧伽难提尊者', '十八祖伽耶舍多尊者', '十九祖鸠摩罗多尊者', '二十祖闭夜多尊者', '二十一祖婆修盘头尊者', '二十二祖摩孥罗尊者', '二十三祖鹤勒那尊者', '二十四祖师子比丘尊者', '二十五祖婆舍斯多尊者', '二十六祖不如蜜多尊者', '二十七祖般若多罗尊者'],
@@ -160,86 +189,81 @@ const ARTICLE_TITLES = {
   32: ['临安府径山宗杲大慧普觉禅师语要下']
 }
 
+function main() {
+  let articleCount = 0
+  let summary_temp = '# SUMMARY\n\n'
 
-let summary_temp = `‌# Summary​
+  for (let id = 0; id <= SCROLL_COUNT; id++) {
+    let name = SCROLL_NAMES[id]
+    let articles = ARTICLE_TITLES[id]
 
-* [序](/序)
-  * [简介](/序/简介.md)
-  * [水月斋指月录原序](/序/水月斋指月录原序.md)
+    let scrollLink = `book/scroll_${utils.numToStr(id, 2)}`
+    let dir = path.join(ROOT_PATH, scrollLink)
+    utils.checkAndCreateDir(dir)
 
-`
-
-function generate(scrollID, scrollName, titles) {
-  // 1.检查文件夹是否存在
-  const dir = path.join(ROOT_PATH, scrollName)
-  utils.checkAndCreateDir(dir)
-
-  summary_temp += `* [${scrollName}](${scrollName})\n`
-
-  // 区别是否有子章节
-  let subChapters = SUB_CHAPTERS[scrollID]
-  if (!!subChapters) {
-    let subCount = subChapters.length
-    let subtitleCount = titles.length;
-
-    if (subCount != subtitleCount) {
-      console.log(`章节 ${scrollName} 的子章节数量 ${subCount} 与实际数量 ${subtitleCount} 不一致`)
-      return
+    let scrollTitle = `卷${utils.numberToChinese(id)}·${name}`
+    if (id === 0) {
+      scrollTitle = name
     }
+    summary_temp += utils.genSummary(scrollTitle, scrollLink, 0)
 
-    for (let j = 0; j < subCount; j++) {
-      let subname = subChapters[j]
+    if (id === 0) {
+      for (let article of articles) {
+        let link = `${scrollLink}/${article}.md`
+        if (article == '水月斋指月录原序') {
+          link = `${scrollLink}/${utils.genNumberedArticle(0, article)}.md`
+        }
 
-      // mkdir
-      let sub = path.join(dir, subname)
-      utils.checkAndCreateDir(sub)
-      summary_temp += `  * [${subname}](${scrollName}\\${subname})\n`
-
-      // make md
-      let subs = titles[j];
-      for (let k = 0; k < subs.length; k++) {
-        let id = k + 1;
-        let name = subs[k];
-        let title = `${id}、${name}`
-        let filename = `${title}.md`
-        let filepath = `${scrollName}/${subname}/${filename}`
-        let fullpath = path.join(ROOT_PATH, filepath)
-
-        summary_temp += `    * [${title}](${filepath})\n`
-
-        utils.checkAndCreateFile(fullpath)
-      }
-    }
-  } else {
-    for (let i = 0; i < titles.length; i++) {
-      let id = i + 1;
-      let name = titles[i];
-      let title = `${id}、${name}`
-      if (SKIP_NUMBER_ARTICLE_ID[scrollID] && SKIP_NUMBER_ARTICLE_ID[scrollID].includes(id)) {
-        title = name;
+        let filepath = path.join(ROOT_PATH, link)
+        utils.checkAndCreateFile(filepath)
+        summary_temp += utils.genSummary(article, link, 1)
       }
 
-      let filename = `${title}.md`
-      let filepath = `${scrollName}/${filename}`
-      let fullpath = path.join(ROOT_PATH, filepath)
-
-      summary_temp += `  * [${title}](${filepath})\n`
-
-      utils.checkAndCreateFile(fullpath)
+      summary_temp += '\n'
+      continue
     }
 
+    let scroll_chapters = CHAPTERS[id]
+    if (scroll_chapters) {
+      for (let i = 0; i < scroll_chapters.length; i++) {
+        let chapter = scroll_chapters[i]
+        let sublink = `${scrollLink}/${chapter}`
+        let subdir = path.join(dir, chapter)
+        utils.checkAndCreateDir(subdir)
+        summary_temp += utils.genSummary(chapter, sublink, 1)
 
+        if (scroll_chapters.length !== articles.length) {
+          console.error(`scroll_${id}|${name} chapter length not match article`)
+          process.exit(2)
+        }
+
+        let sub_articles = articles[i]
+        for (let j = 0; j < sub_articles.length; j++) {
+          articleCount++
+          let article = sub_articles[j]
+          let filename = utils.genNumberedArticle(articleCount, article)
+          let articleLink = `${sublink}/${filename}.md`
+          let articleFile = path.join(ROOT_PATH, articleLink)
+          utils.checkAndCreateFile(articleFile)
+          summary_temp += utils.genSummary(article, articleLink, 2)
+        }
+
+      }
+    } else {
+      for (let article of articles) {
+        articleCount++
+        let filename = utils.genNumberedArticle(articleCount, article)
+        let articleLink = `${scrollLink}/${filename}.md`
+        let articleFile = path.join(ROOT_PATH, articleLink)
+        utils.checkAndCreateFile(articleFile)
+        summary_temp += utils.genSummary(article, articleLink, 1)
+      }
+    }
+
+    summary_temp += '\n'
   }
 
-  summary_temp += `\n`
+  fs.writeFileSync(SUMMARY_PATH, summary_temp)
 }
 
-
-for (let i = 0; i < CHAPTERS.length; i++) {
-  let scrollID = i + 1;
-  let scrollName = CHAPTERS[i];
-  let titles = SUBTITLES[scrollID] || [];
-  generate(scrollID, scrollName, titles)
-}
-
-fs.writeFileSync(SUMMARY_PATH, summary_temp)
+main();
