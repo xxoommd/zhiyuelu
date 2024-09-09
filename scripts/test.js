@@ -35,6 +35,7 @@ const utils = {
   },
 
   numberToChinese: num => {
+    num = parseInt(num)
     const units = ['', '十', '百', '千', '万', '十万', '百万', '千万', '亿'];
     const digits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 
@@ -179,7 +180,7 @@ const ARTICLE_TITLES = {
   32: ['临安府径山宗杲大慧普觉禅师语要下']
 }
 
-function main() {
+function genFilesAndSummary() {
   let articleCount = 0
   let summary_temp = '# SUMMARY\n\n'
 
@@ -255,6 +256,56 @@ function main() {
   }
 
   fs.writeFileSync(SUMMARY_PATH, summary_temp)
+}
+
+// Status: ✖️ 🟢 ✅
+function initializeReadmeSchedule() {
+  let scheduleSection = '# Schedule\n'
+
+  // 状态
+  scheduleSection += `\n> ✖️ 未开始\n`
+  scheduleSection += `\n> 🟢 进行中\n`
+  scheduleSection += `\n> ✅ 已完成\n\n`
+
+
+  // 表头
+  scheduleSection += `|卷|Progress|Status|\n`
+  scheduleSection += `|---|---|---|\n`
+
+
+  for (let [i, v] of Object.entries(SCROLL_NAMES)) {
+    if (i == 0) { // 跳过序
+      continue
+    }
+
+    const scrollName = utils.numberToChinese(i)
+    const articleCount = function () {
+      let count = 0
+      const articles = ARTICLE_TITLES[i]
+      for (let article of articles) {
+        if (Array.isArray(article)) {
+          count += article.length
+        } else {
+          count++
+        }
+      }
+      return count
+    }()
+
+    scheduleSection += `|卷${scrollName}|0/${articleCount}|✖️|\n`
+  }
+
+  scheduleSection += '\n'
+
+  const readmePath = path.join(ROOT_PATH, 'book/scroll_00/README.md')
+  let fileContent = fs.readFileSync(readmePath, 'utf8');
+  fileContent = fileContent.replace(/# Schedule[\s\S]*?# Book Log/, `${scheduleSection}\n# Book Log`);
+  fs.writeFileSync(readmePath, fileContent, 'utf8');
+}
+
+function main() {
+  // genFilesAndSummary()
+  // initializeReadmeSchedule()
 }
 
 main();
