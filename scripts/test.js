@@ -6,6 +6,12 @@ const path = require('path');
 const ROOT_PATH = path.join(__dirname, '..')
 const SUMMARY_PATH = path.join(ROOT_PATH, 'SUMMARY.md')
 
+const currWorkSchedule = 1
+const schedule = {
+  1: 1,
+  2: 0
+}
+
 const utils = {
   checkAndCreateFile: file => {
     if (fs.existsSync(file)) {
@@ -259,7 +265,7 @@ function genFilesAndSummary() {
 }
 
 // Status: ✖️ 🟢 ✅
-function initializeReadmeSchedule() {
+function genReadmeSchedule() {
   let scheduleSection = '# Schedule\n'
 
   // 状态
@@ -292,12 +298,22 @@ function initializeReadmeSchedule() {
       return count
     }()
 
-    scheduleSection += `|卷${scrollName}|0/${articleCount}|✖️|\n`
+    let currSchedule = schedule[i] || 0
+    const status = function () {
+      if (currSchedule === articleCount) {
+        return '✅'
+      } else if (currSchedule > 0) {
+        return '🟢'
+      } else {
+        return '✖️'
+      }
+    }()
+    scheduleSection += `|卷${scrollName}|${currSchedule}/${articleCount}|${status}|\n`
   }
 
   scheduleSection += '\n'
 
-  const readmePath = path.join(ROOT_PATH, 'book/scroll_00/README.md')
+  const readmePath = path.join(ROOT_PATH, 'README.md')
   let fileContent = fs.readFileSync(readmePath, 'utf8');
   fileContent = fileContent.replace(/# Schedule[\s\S]*?# Book Log/, `${scheduleSection}\n# Book Log`);
   fs.writeFileSync(readmePath, fileContent, 'utf8');
@@ -305,7 +321,7 @@ function initializeReadmeSchedule() {
 
 function main() {
   // genFilesAndSummary()
-  // initializeReadmeSchedule()
+  genReadmeSchedule()
 }
 
 main();
