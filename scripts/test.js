@@ -224,11 +224,12 @@ function main() {
     }
 
     let scroll_chapters = CHAPTERS[id]
-    if (scroll_chapters) {
+    if (scroll_chapters) { // 包含子章节
       for (let i = 0; i < scroll_chapters.length; i++) {
         let chapter = scroll_chapters[i]
-        let sublink = `${scrollLink}/${chapter}`
-        let subdir = path.join(dir, chapter)
+        let chapterTitle = `chapter_${utils.numToStr(i + 1, 2)}_${chapter}`
+        let sublink = `${scrollLink}/${chapterTitle}`
+        let subdir = path.join(dir, chapterTitle)
         utils.checkAndCreateDir(subdir)
         summary_temp += utils.genSummary(chapter, sublink, 1)
 
