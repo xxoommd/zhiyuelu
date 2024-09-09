@@ -1,5 +1,5 @@
 ---
-description: 编者序
+description: 编者自述
 ---
 
 # Schedule
