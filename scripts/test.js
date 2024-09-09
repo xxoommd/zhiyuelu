@@ -225,7 +225,8 @@ function main() {
 
     let scroll_chapters = CHAPTERS[id]
     if (scroll_chapters) {
-      for (let chapter of scroll_chapters) {
+      for (let i = 0; i < scroll_chapters.length; i++) {
+        let chapter = scroll_chapters[i]
         let sublink = `${scrollLink}/${chapter}`
         let subdir = path.join(dir, chapter)
         utils.checkAndCreateDir(subdir)
@@ -236,18 +237,17 @@ function main() {
           process.exit(2)
         }
 
-        for (let i = 0; i < scroll_chapters.length; i++) {
-          let sub_articles = articles[i]
-          for (let j = 0; j < sub_articles.length; j++) {
-            articleCount++
-            let article = sub_articles[j]
-            let filename = utils.genNumberedArticle(articleCount, article)
-            let articleLink = `${sublink}/${filename}.md`
-            let articleFile = path.join(ROOT_PATH, articleLink)
-            utils.checkAndCreateFile(articleFile)
-            summary_temp += utils.genSummary(article, articleLink, 2)
-          }
+        let sub_articles = articles[i]
+        for (let j = 0; j < sub_articles.length; j++) {
+          articleCount++
+          let article = sub_articles[j]
+          let filename = utils.genNumberedArticle(articleCount, article)
+          let articleLink = `${sublink}/${filename}.md`
+          let articleFile = path.join(ROOT_PATH, articleLink)
+          utils.checkAndCreateFile(articleFile)
+          summary_temp += utils.genSummary(article, articleLink, 2)
         }
+
       }
     } else {
       for (let article of articles) {
