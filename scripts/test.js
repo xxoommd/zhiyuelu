@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { finished } = require('stream');
 
 const ROOT_PATH = path.join(__dirname, '..')
 const SUMMARY_PATH = path.join(ROOT_PATH, 'SUMMARY.md')
@@ -9,7 +10,7 @@ const SUMMARY_PATH = path.join(ROOT_PATH, 'SUMMARY.md')
 const currWorkSchedule = 1
 const schedule = {
   1: { finished: 1, updated: '2024-9-9' },
-  2: 0
+  2: { finished: 0 }
 }
 
 const utils = {
@@ -273,11 +274,37 @@ function genReadmeSchedule() {
   scheduleSection += `\n> 🟢 进行中\n`
   scheduleSection += `\n> ✅ 已完成\n\n`
 
+  const totalFinish = function () {
+    let count = 0
+    for (let [i, v] of Object.entries(schedule)) {
+      count += v.finished || 0
+    }
+    return count
+  }()
+
+  const totalArticle = function () {
+    let count = 0
+    for (let [i, v] of Object.entries(ARTICLE_TITLES)) {
+      if (i == 0) { // 跳过序
+        continue
+      }
+      const articles = v
+      for (let article of articles) {
+        if (Array.isArray(article)) {
+          count += article.length
+        } else {
+          count++
+        }
+      }
+    }
+    return count
+  }()
+
+  scheduleSection += `\n ### 总进度：${totalFinish}/${totalArticle}\n\n`
 
   // 表头
   scheduleSection += `|卷|Progress|Status|Updated\n`
   scheduleSection += `|---|---|---|---|\n`
-
 
   for (let [i, v] of Object.entries(SCROLL_NAMES)) {
     if (i == 0) { // 跳过序
