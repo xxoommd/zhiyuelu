@@ -347,7 +347,7 @@
   * [桐峰庵主](book/scroll_17/300_桐峰庵主.md)
   * [杉洋庵主](book/scroll_17/301_杉洋庵主.md)
   * [定上座](book/scroll_17/302_定上座.md)
-  * [上座](book/scroll_17/303_上座.md)
+  * [奯上座](book/scroll_17/303_奯上座.md)
   * [瑞州九峰道虔禅师](book/scroll_17/304_瑞州九峰道虔禅师.md)
   * [台州涌泉景欣禅师](book/scroll_17/305_台州涌泉景欣禅师.md)
   * [邵武军龙湖普闻禅师](book/scroll_17/306_邵武军龙湖普闻禅师.md)
