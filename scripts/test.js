@@ -95,6 +95,8 @@ const utils = {
     return `${String(num).padStart(3, '0')}_${article}`
   },
 
+  // numToStr(12, 3) => '012'
+  // numToStr(3, 2) => '03
   numToStr: (num, pad) => {
     return String(num).padStart(pad, '0')
   }
@@ -267,7 +269,7 @@ function genFilesAndSummary() {
 
 // Status: ✖️ 🟢 ✅
 function genReadmeSchedule() {
-  let scheduleSection = '# Schedule\n'
+  let scheduleSection = '### Schedule\n---\n'
 
   // 状态
   scheduleSection += `\n> ✖️ 未开始\n`
@@ -300,10 +302,10 @@ function genReadmeSchedule() {
     return count
   }()
 
-  scheduleSection += `\n ### 总进度：${totalFinish}/${totalArticle}\n\n`
+  scheduleSection += `\n #### 总进度：${totalFinish}/${totalArticle}\n\n`
 
   // 表头
-  scheduleSection += `|卷|Progress|Status|Updated\n`
+  scheduleSection += `|卷|Progress|Status|Updated|\n`
   scheduleSection += `|---|---|---|---|\n`
 
   for (let [i, v] of Object.entries(SCROLL_NAMES)) {
@@ -329,7 +331,7 @@ function genReadmeSchedule() {
     const status = function () {
       if (currSchedule.finished === articleCount) {
         return '✅'
-      } else if (currSchedule.finished > 0) {
+      } else if (currWorkSchedule == i) {
         return '🟢'
       } else {
         return '✖️'
@@ -343,13 +345,203 @@ function genReadmeSchedule() {
 
   const readmePath = path.join(ROOT_PATH, 'README.md')
   let fileContent = fs.readFileSync(readmePath, 'utf8');
-  fileContent = fileContent.replace(/# Schedule[\s\S]*?# Book Log/, `${scheduleSection}\n# Book Log`);
+  fileContent = fileContent.replace(/### Schedule[\s\S]*?### Book Log/, `${scheduleSection}\n### Book Log`);
   fs.writeFileSync(readmePath, fileContent, 'utf8');
 }
 
+function getAllFiles(dirPath, arrayOfFiles) {
+  const files = fs.readdirSync(dirPath);
+
+  arrayOfFiles = arrayOfFiles || [];
+
+  files.forEach(function (file) {
+    const filePath = path.join(dirPath, file);
+
+    if (fs.statSync(filePath).isDirectory()) {
+      // 递归处理子文件夹
+      arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
+    } else {
+      // 添加文件路径
+      arrayOfFiles.push(filePath);
+    }
+  });
+
+  return arrayOfFiles;
+}
+
+class Article {
+  constructor() {
+    this.desc = ''
+    this.paras = []
+  }
+
+  print() {
+    let str = `- DESC: ${this.desc}\n\n`
+    for (let [i, para] of this.paras.entries()) {
+      str += `- PARA-${i}:\n${para.toString()}\n`
+    }
+    return str
+  }
+
+  toLine() {
+    let str = ``
+    if (this.desc.length > 0) {
+      str += `---\ndescription: ${this.desc}\n---\n\n`
+    }
+
+    for (let [i, para] of this.paras.entries()) {
+      if (para.title1.length > 0) {
+        str += `### ${para.title1}\n\n`
+      }
+
+      for (const line of para.content) {
+        str += `${line}\n\n`
+      }
+
+      str += '\n'
+    }
+
+    return str
+  }
+}
+
+const FOMRAT_HEADS = ['译：', '释：', '注：', '>']
+function isFormatHead(line) {
+  for (let head of FOMRAT_HEADS) {
+    if (line.startsWith(head)) {
+      return true
+    }
+  }
+  return false
+}
+
+class Paragraph {
+  constructor() {
+    this.title1 = ''
+    this.content = []
+  }
+
+  toString() {
+    let str = `  + TITLE: ${this.title1}\n`
+    for (let [i, p] of this.content.entries()) {
+      str += `  + LINE:${i}  ${p}\n`
+    }
+    return str
+  }
+}
+
+function formattingMD(filecontent) {
+  const article = new Article()
+
+  const lines = filecontent.split('\n')
+  let i = 0
+  let hasDesc = false
+
+  for (; i < lines.length; i++) {
+    let line = lines[i].trim()
+    if (line.startsWith('---')) {
+      hasDesc = true
+      continue
+    }
+
+    if (line.startsWith('description:')) {
+      article.desc = line.split(':')[1].trim()
+      i += 2
+      break
+    }
+  }
+
+  if (!hasDesc) {
+    i = 0
+  }
+
+  let para = new Paragraph()
+  for (; i < lines.length; i++) {
+    let line = lines[i].trim()
+    if (line == '\n' || line == '\r' || line.length == 0) {
+      if (i == lines.length - 1) {
+        article.paras.push(para)
+      }
+      continue
+    }
+
+    if (line.startsWith('###')) {
+      if (para.content.length > 0) {
+        article.paras.push(para)
+        para = new Paragraph()
+      }
+
+      para.title1 = line.split(' ')[1]
+      continue
+    }
+
+    if (isFormatHead(line)) {
+      para.content.push(line)
+      continue
+    }
+
+    line = `> ${line}`
+    para.content.push(line)
+  }
+
+  if (para.content.length > 0) {
+    article.paras.push(para)
+  }
+
+  return article.toLine()
+}
+
+function formatMarkdown() {
+  // const filepath = path.join(ROOT_PATH, 'book/scroll_01/000_test.md')
+
+  const files = getAllFiles(path.join(ROOT_PATH, 'book'))
+  for (let filepath of files) {
+    if (path.extname(filepath) !== '.md') {
+      continue
+    }
+
+    let fileContent = fs.readFileSync(filepath, 'utf8');
+    const formattedContent = formattingMD(fileContent)
+    fs.writeFileSync(filepath, formattedContent, 'utf8')
+  }
+}
+
 function main() {
-  // genFilesAndSummary()
-  genReadmeSchedule()
+  const tasks = {
+    genFiles: false,
+    genReadme: false,
+    formatMarkdown: false
+  }
+
+  const args = (process.argv || []).slice(2)
+
+
+  for (let arg of args) {
+    switch (arg) {
+      case '--gen-files':
+      case '-g':
+        tasks.genFiles = true
+        break
+      case '--gen-readme':
+      case '-r':
+      case '--update-schedule':
+      case '-s':
+        tasks.genReadme = true
+        break
+      case '--format-markdown':
+      case '-f':
+        tasks.formatMarkdown = true
+      default:
+        break
+    }
+  }
+
+  if (tasks.genFiles) genFilesAndSummary()
+
+  if (tasks.genReadme) genReadmeSchedule()
+
+  if (tasks.formatMarkdown) formatMarkdown()
+
 }
 
 main();
