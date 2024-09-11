@@ -395,8 +395,7 @@ class Article {
       }
 
       for (const [j, line] of para.content.entries()) {
-        console.log('---', line.length)
-        str += `\n${line.trim()}\n`
+        str += `\n${line}\n`
       }
     }
 
