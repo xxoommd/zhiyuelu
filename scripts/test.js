@@ -386,34 +386,36 @@ class Article {
   toLine() {
     let str = ``
     if (this.desc.length > 0) {
-      str += `---\ndescription: ${this.desc}\n---\n\n`
+      str += `---\ndescription: ${this.desc}\n---\n`
     }
 
     for (let [i, para] of this.paras.entries()) {
       if (para.title1.length > 0) {
-        str += `### ${para.title1}\n\n`
+        str += `\n### ${para.title1}\n`
       }
 
-      for (const line of para.content) {
-        str += `${line}\n\n`
+      for (const [j, line] of para.content.entries()) {
+        console.log('---', line.length)
+        str += `\n${line.trim()}\n`
       }
-
-      str += '\n'
     }
 
     return str
   }
 }
 
-const FOMRAT_HEADS = ['译：', '释：', '注：', '>']
+const FOMRAT_HEADS = [/^译：/, /^释：/, /^注：/, /^>/, /^注\d+/]; // 全部替换为正则表达式
+
 function isFormatHead(line) {
-  for (let head of FOMRAT_HEADS) {
-    if (line.startsWith(head)) {
-      return true
+  // 遍历正则表达式数组，并使用 test() 方法进行匹配
+  for (let regex of FOMRAT_HEADS) {
+    if (regex.test(line)) {
+      return true;
     }
   }
-  return false
+  return false;
 }
+
 
 class Paragraph {
   constructor() {
@@ -458,9 +460,10 @@ function formattingMD(filecontent) {
   let para = new Paragraph()
   for (; i < lines.length; i++) {
     let line = lines[i].trim()
-    if (line == '\n' || line == '\r' || line.length == 0) {
+    if (line.length == 0) {
       if (i == lines.length - 1) {
         article.paras.push(para)
+        para = new Paragraph()
       }
       continue
     }
@@ -488,11 +491,17 @@ function formattingMD(filecontent) {
     article.paras.push(para)
   }
 
+  console.log(article.paras)
   return article.toLine()
 }
 
 function formatMarkdown() {
-  // const filepath = path.join(ROOT_PATH, 'book/scroll_01/000_test.md')
+  // --- Single file test...
+  // const filepath = path.join(__dirname, '000_test.md')
+  // let fileContent = fs.readFileSync(filepath, 'utf8');
+  // const formattedContent = formattingMD(fileContent)
+  // fs.writeFileSync(filepath, formattedContent, 'utf8')
+  // --- test end.
 
   const files = getAllFiles(path.join(ROOT_PATH, 'book'))
   for (let filepath of files) {
