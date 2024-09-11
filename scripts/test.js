@@ -495,13 +495,6 @@ function formattingMD(filecontent) {
 }
 
 function formatMarkdown() {
-  // --- Single file test...
-  // const filepath = path.join(__dirname, '000_test.md')
-  // let fileContent = fs.readFileSync(filepath, 'utf8');
-  // const formattedContent = formattingMD(fileContent)
-  // fs.writeFileSync(filepath, formattedContent, 'utf8')
-  // --- test end.
-
   const files = getAllFiles(path.join(ROOT_PATH, 'book'))
   for (let filepath of files) {
     if (path.extname(filepath) !== '.md') {
@@ -514,11 +507,21 @@ function formatMarkdown() {
   }
 }
 
+function testFunction() {
+  // --- Single file test...
+  const filepath = path.join(__dirname, '000_test.md')
+  let fileContent = fs.readFileSync(filepath, 'utf8');
+  const formattedContent = formattingMD(fileContent)
+  fs.writeFileSync(filepath, formattedContent, 'utf8')
+  // --- test end.
+}
+
 function main() {
   const tasks = {
     genFiles: false,
     genReadme: false,
-    formatMarkdown: false
+    formatMarkdown: false,
+    isTest: false
   }
 
   const args = (process.argv || []).slice(2)
@@ -526,6 +529,10 @@ function main() {
 
   for (let arg of args) {
     switch (arg) {
+      case '--test':
+      case '-t':
+        tasks.isTest = true
+        break
       case '--gen-files':
       case '-g':
         tasks.genFiles = true
@@ -543,6 +550,8 @@ function main() {
         break
     }
   }
+
+  if (tasks.isTest) testFunction()
 
   if (tasks.genFiles) genFilesAndSummary()
 
