@@ -9,7 +9,7 @@ const SUMMARY_PATH = path.join(ROOT_PATH, 'SUMMARY.md')
 
 const currWorkSchedule = 1
 const schedule = {
-  1: { finished: 1, updated: '2024-9-9' },
+  1: { finished: 6, updated: '2024-9-12' },
   2: { finished: 0 }
 }
 
